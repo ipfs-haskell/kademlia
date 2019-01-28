@@ -6,8 +6,8 @@ import Data.List (sortBy)
 import Data.Function (on)
 
 -- A phantom type to represent ID
-newtype ID a =
-  ID BS.ByteString
+type ID a =
+  BS.ByteString
 
 data NodeID
 
@@ -30,13 +30,11 @@ data Bucket = Bucket
   , bucketNodes :: [Node]
   }
 
-removeIDConstructor (ID x) = x
-
-sortBucketsByDistance :: Bucket -> ID a -> Bucket
-sortBucketByDiatance bl (ID id) = unpack . sort . pack . bucketNodes $ bl
+sortBucketByDistance :: Bucket -> ID a -> Bucket
+sortBucketByDistance bl id = unpack . sort . pack . bucketNodes $ bl
   where
     pack x = zip x $ map f x
-    f = unsafeXorByteString id . removeIDConstructor . nodeID
+    f = unsafeXorByteString id . nodeID
     sort = sortBy (compare `on` snd)
     unpack x = Bucket (bucketLogLower bl) $ map fst x
 
