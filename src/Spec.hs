@@ -37,7 +37,8 @@ sortBucketsByDiatance bl (ID id) = unpack . sort . pack . bucketNodes $ bl
         sort = sortBy (compare `on` snd)
         unpack = map fst
 
-xorByteString :: BS.ByteString -> BS.ByteString -> Integer
-xorByteString a b = foldl f (b, BS.empty) a
-  where f x y = (BS.tail . fst $ x, y `xor` BS.head . fst $ x)
+xorByteString :: BS.ByteString -> BS.ByteString -> BS.ByteString 
+xorByteString a b = snd $ foldl f (b, BS.empty) a
+  where f x y = (BS.tail . fst $ x, BS.snoc (snd x) xorResult) 
+        xorResult = y `xor` BS.head . fst $ x
 
