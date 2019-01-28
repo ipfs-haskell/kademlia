@@ -33,6 +33,17 @@
   (major1) == 0 && (major2) == 10 && (minor) <= 8)
 #endif /* MIN_VERSION_bytestring */
 
+/* package network-3.0.0.0 */
+#ifndef VERSION_network
+#define VERSION_network "3.0.0.0"
+#endif /* VERSION_network */
+#ifndef MIN_VERSION_network
+#define MIN_VERSION_network(major1,major2,minor) (\
+  (major1) <  3 || \
+  (major1) == 3 && (major2) <  0 || \
+  (major1) == 3 && (major2) == 0 && (minor) <= 0)
+#endif /* MIN_VERSION_network */
+
 /* tool gcc-7 */
 #ifndef TOOL_VERSION_gcc
 #define TOOL_VERSION_gcc "7"

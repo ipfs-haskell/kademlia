@@ -2,20 +2,26 @@ module Spec where
 
 import qualified Data.Bits as B
 import qualified Data.ByteString as BS
-import Data.List (sortBy)
 import Data.Function (on)
+import Data.List (sortBy)
+import Network.Socket (SockAddr(..), HostAddress, PortNumber, SockAddr)
 
 -- A phantom type to represent ID
-type ID a =
-  BS.ByteString
+type ID a = BS.ByteString
 
 data NodeID
 
 -- Change this, this is the UDP peer
 data Peer = Peer
-  { peerIP :: String
-  , peerPort :: String
+  { peerIP :: HostAddress
+  , peerPort :: PortNumber
   }
+
+peerToSockAddr :: Peer -> SockAddr
+peerToSockAddr p = SockAddrInet thePeerPort thePeerIP
+  where
+    thePeerPort = peerPort p
+    thePeerIP = peerIP p
 
 -- A node in the Kademlia Network
 data Node = Node
