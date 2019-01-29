@@ -10,6 +10,7 @@ import Network.Socket (SockAddr(..), HostAddress, PortNumber, SockAddr)
 type ID a = BS.ByteString
 
 data NodeID
+data Key
 
 -- Change this, this is the UDP peer
 data Peer = Peer
