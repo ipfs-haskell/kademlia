@@ -2,7 +2,7 @@ module Protocol where
 import qualified Data.ByteString as BS
 import Spec as S
 
-type NodeTriplet = (ID NodeID)
+type NodeTriplet = (ID NodeID, Peer)
 type DataBlock = BS.ByteString
 type Message = BS.ByteString
 

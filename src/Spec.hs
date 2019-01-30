@@ -46,12 +46,13 @@ sortBucketByDistance bl id = unpack . sort . pack . bucketNodes $ bl
     unpack x = Bucket (bucketLogLower bl) $ map fst x
 
 unsafeXorByteString :: BS.ByteString -> BS.ByteString -> BS.ByteString
-unsafeXorByteString a b = snd $ BS.foldl f (b, BS.empty) a
-  where
-    f x y = (BS.tail . fst $ x, BS.snoc (snd x) $ xorResult x y)
-    xorResult x y = B.xor y $ BS.head . fst $ x
+unsafeXorByteString a b = BS.pack $ BS.zipWith B.xor a b
 
 safeXorByteString :: BS.ByteString -> BS.ByteString -> BS.ByteString
 safeXorByteString x y
-  | x >= y = unsafeXorByteString x y
-  | otherwise = unsafeXorByteString y x
+  | lx == ly = unsafeXorByteString x y
+  | lx > ly = unsafeXorByteString y $ BS.take ly x
+  | otherwise = unsafeXorByteString x $ BS.take lx y
+  where 
+    lx = BS.length x
+    ly = BS.length y
