@@ -1,17 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
-
--- Echo client program
 module Client where
 
 import qualified Control.Exception as E
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString as BS 
 import Network.Socket
 import Network.Socket.ByteString (recv, sendAll)
 
-msgTest :: String -> IO ()
-msgTest x =
+type NumBytes = Int
+
+sendBytes :: HostName -> ServiceName -> BS.ByteString -> NumBytes -> IO BS.ByteString 
+sendBytes h s b n =
   withSocketsDo $ do
-    addr <- resolve "127.0.0.1" "3000"
+    addr <- resolve h s
     E.bracket (open addr) close talk
   where
     resolve host port = do
@@ -23,7 +22,7 @@ msgTest x =
       connect sock $ addrAddress addr
       return sock
     talk sock = do
-      sendAll sock $ C.pack x
-      msg <- recv sock 1024
-      putStr "Received: "
-      C.putStrLn msg
+      sendAll sock b
+      recv sock n
+     
+-- Include a timeout for recv.
