@@ -10,9 +10,9 @@ data RPC = PING
   | PONG
   | STORE_REQUEST (ID Key) DataBlock
   | STORE_RESPONSE (ID Key) Message
-  | FIND_NODE_REQUEST (ID Key)
+  | FIND_NODE_REQUEST (ID NodeID)
   | FIND_NODE_RESPONSE [NodeTriplet]
   | FIND_VALUE_REQUEST (ID Key)
-  | FIND_VALUE_RESPONSE DataBlock [NodeTriplet]
+  | FIND_VALUE_RESPONSE Bool DataBlock [NodeTriplet]
 
 

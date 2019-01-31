@@ -15,6 +15,7 @@ build-type:          Simple
 library 
   exposed-modules:     Spec 
                      , Protocol
+                     , Client
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base
