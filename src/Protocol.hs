@@ -1,9 +1,11 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Protocol where
 import qualified Data.ByteString as BS
 import Spec as S
+import Data.Serialize as C
 
 type NodeTriplet = (ID NodeID, Peer)
-type DataBlock = BS.ByteString
 type Message = BS.ByteString
 
 data RPC = PING
@@ -13,6 +15,8 @@ data RPC = PING
   | FIND_NODE_REQUEST (ID NodeID)
   | FIND_NODE_RESPONSE [NodeTriplet]
   | FIND_VALUE_REQUEST (ID Key)
-  | FIND_VALUE_RESPONSE Bool DataBlock [NodeTriplet]
+  | FIND_VALUE_RESPONSE Bool DataBlock [NodeTriplet] deriving Generic
 
+answer :: RPC -> [S.Bucket]  -> RPC
+answer PING _ = PONG
 

@@ -21,6 +21,8 @@ library
   build-depends:       base
                      , bytestring 
                      , network
+                     , cereal
+                     , containers
   hs-source-dirs:      src
   default-language:    Haskell2010
 

@@ -5,6 +5,13 @@ import qualified Data.ByteString as BS
 import Data.Function (on)
 import Data.List (sortBy)
 import Network.Socket (SockAddr(..), HostAddress, PortNumber, SockAddr)
+-- Change to Lazy Map later
+import qualified Data.Map.Strict as M
+
+-- A local hash table
+type HashTable = M.Map (ID Key) DataBlock
+
+type DataBlock = BS.ByteString
 
 -- A phantom type to represent ID
 type ID a = BS.ByteString
