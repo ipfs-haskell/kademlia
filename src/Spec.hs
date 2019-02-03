@@ -35,6 +35,7 @@ peerToSockAddr p = SockAddrInet thePeerPort thePeerIP
 data Node = Node
   { nodeID :: ID NodeID
   , nodeBuckets :: [Bucket]
+  , hashTable :: HashTable
   , nodePeer :: Peer
   }
 

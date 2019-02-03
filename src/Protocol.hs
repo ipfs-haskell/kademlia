@@ -4,6 +4,8 @@ module Protocol where
 import qualified Data.ByteString as BS
 import Spec as S
 import Data.Serialize as C
+import GHC.Generics
+
 
 type NodeTriplet = (ID NodeID, Peer)
 type Message = BS.ByteString
@@ -17,6 +19,6 @@ data RPC = PING
   | FIND_VALUE_REQUEST (ID Key)
   | FIND_VALUE_RESPONSE Bool DataBlock [NodeTriplet] deriving Generic
 
-answer :: RPC -> [S.Bucket]  -> RPC
+answer :: RPC -> Node -> RPC
 answer PING _ = PONG
 
