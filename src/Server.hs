@@ -8,10 +8,11 @@ import qualified Data.ByteString as S
 import Network.Socket
 import Network.Socket.ByteString (recv, sendAll)
 
-type MaxNumConn = Int
+type NumConn = Int
+type NumBytes = Int
 
-runServer :: ServiceName -> MaxNumConn -> IO ()
-runServer s m =
+runServer :: ServiceName -> NumConn -> NumBytes -> IO ()
+runServer s m n =
   withSocketDo $ do
     addr <- resolve s
     E.bracket (open addr) close loop
@@ -34,8 +35,12 @@ runServer s m =
         (conn, peer) <- accept sock
         putStrLn $ "Connection from " ++ show peer
         void $ forkFinally (talk conn) (\_ -> close conn)
-    talk conn = do
-      msg <- recv conn 1024
-      unless (S.null msg) $ do
-        sendAll conn msg
-        talk conn
+    talk = flip serviceClient n
+
+serviceClient conn n = do
+  msg <- recv conn n  
+  unless (S.null msg) $ do
+    sendAll conn msg
+    serviceClient conn n
+
+
