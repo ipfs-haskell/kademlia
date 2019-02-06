@@ -41,7 +41,7 @@ data Node = Node
   , nodePeer :: Peer
   }
 
-type NodeState = forall m. Monad m => StateT Node m ()
+type NodeState a = forall m. Monad m => StateT Node m a
 
 -- A bucket representation
 type Bucket = [Node]

@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE Rank2Types #-}
 
 module Protocol where
 import qualified Data.ByteString as BS
@@ -6,7 +7,7 @@ import Spec as S
 import Data.Serialize as C
 import GHC.Generics
 import qualified Data.Map as M
-
+import Control.Monad.Trans.State.Strict (StateT(..))
 
 type NodeTriplet = (ID NodeID, Peer)
 type Message = BS.ByteString
@@ -20,15 +21,13 @@ data RPC = PING
   | FIND_VALUE_REQUEST (ID Key)
   | FIND_VALUE_RESPONSE Bool DataBlock [NodeTriplet] deriving Generic
 
-answer :: RPC -> Node -> (RPC, Node)
 
-answer PING n = (PONG, n)
-
-answer (STORE_REQUEST i d) n = (STORE_RESPONSE i, nN)
-  where
-    cHashTable = nodeHashTable n
-    nHashTable = M.insert i d cHashTable
-    nN = n { nodeHashTable = nHashTable }
+answer :: RPC -> NodeState RPC
+answer PING = StateT $ \n -> pure (PONG, n)
+answer (STORE_REQUEST i d) = StateT $ \n -> do
+  let nHashTable = M.insert i d . nodeHashTable $ n
+  let nN = n { nodeHashTable = nHashTable }
+  return (STORE_RESPONSE i, nN)
 
 nodeToTriplet :: Node -> NodeTriplet
 nodeToTriplet n = (nodeID n, nodePeer n)
