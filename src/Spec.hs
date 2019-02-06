@@ -1,12 +1,19 @@
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE Rank2Types #-}
+
+
 module Spec where
 
 import qualified Data.Bits as B
 import qualified Data.ByteString as BS
 import Data.Function (on)
 import Data.List (sortBy)
-import Network.Socket (SockAddr(..), HostAddress, PortNumber, SockAddr)
+import Network.Socket (SockAddr(..), HostAddress, ServiceName, SockAddr)
 -- Change to Lazy Map later
 import qualified Data.Map.Strict as M
+import qualified Data.Vector as V
+import Control.Monad.Trans.State.Strict (StateT)
+import Control.Monad
 
 -- A local hash table
 type HashTable = M.Map (ID Key) DataBlock
@@ -22,36 +29,30 @@ data Key
 -- Change this, this is the UDP peer
 data Peer = Peer
   { peerIP :: HostAddress
-  , peerPort :: PortNumber
+  , peerPort :: ServiceName
   }
 
-peerToSockAddr :: Peer -> SockAddr
-peerToSockAddr p = SockAddrInet thePeerPort thePeerIP
-  where
-    thePeerPort = peerPort p
-    thePeerIP = peerIP p
 
 -- A node in the Kademlia Network
 data Node = Node
   { nodeID :: ID NodeID
-  , nodeBuckets :: [Bucket]
+  , nodeBuckets :: V.Vector Bucket
   , nodeHashTable :: HashTable
   , nodePeer :: Peer
   }
 
+type NodeState = forall m. Monad m => StateT Node m ()
+
 -- A bucket representation
-data Bucket = Bucket
-  { bucketLogLower :: Integer
-  , bucketNodes :: [Node]
-  }
+type Bucket = [Node]
 
 sortBucketByDistance :: Bucket -> ID a -> Bucket
-sortBucketByDistance bl id = unpack . sort . pack . bucketNodes $ bl
+sortBucketByDistance bl id = unpack . sort . pack $ bl
   where
     pack x = zip x $ map f x
     f = safeXorByteString id . nodeID
     sort = sortBy (compare `on` snd)
-    unpack x = Bucket (bucketLogLower bl) $ map fst x
+    unpack = map fst
 
 unsafeXorByteString :: BS.ByteString -> BS.ByteString -> BS.ByteString
 unsafeXorByteString a b = BS.pack $ BS.zipWith B.xor a b
