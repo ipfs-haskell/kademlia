@@ -33,14 +33,4 @@ answer (STORE_REQUEST i d) n = (STORE_RESPONSE i, nN)
 nodeToTriplet :: Node -> NodeTriplet
 nodeToTriplet n = (nodeID n, nodePeer n)
 
--- Incomplete function. (Ignore)
-answer (FIND_NODE_REQUEST i) n = (FIND_NODE_RESPONSE nt, n)
-  where
-    cnID = nodeID n
-    diff = safeXorByteString cnID i
-    b = nodeBuckets n
-    nt = unpack . listMin . pack . b
-    pack = zip (map (safeXorByteString i . bucketLogLower) b)
-    listMin = minimum
-    unpack = map nodeToTriplet . snd
 
