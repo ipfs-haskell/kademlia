@@ -1,4 +1,5 @@
 -- Written by Piyush Kurur (github.com/piyush-kurur)
+
 {-# LANGUAGE ConstraintKinds
            , DataKinds
            , FlexibleContexts
@@ -78,7 +79,10 @@ instance (KnownNat n, MonadIO m) => MonadDatagram (UdpT n m) where
   type Bound   (UdpT n m) = n
   type Address (UdpT n m) = SockAddr
 
-  send addr dgram = UdpT ask >>= \ sock -> liftIO $ Socket.sendAllTo sock (unwrap dgram) addr
+  send addr dgram = do
+    sock <- UdpT ask
+    liftIO $ Socket.sendAllTo sock (unwrap dgram) addr
+
   receive     = do
     sock   <- UdpT ask
     msize  <- messageSize

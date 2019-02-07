@@ -16,7 +16,7 @@ library
   exposed-modules:     Spec 
                      , Protocol
                      , Client
-  -- other-modules:       
+  other-modules:       Network.Datagram      
   -- other-extensions:    
   build-depends:       base
                      , bytestring 
