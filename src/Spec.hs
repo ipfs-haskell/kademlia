@@ -43,14 +43,16 @@ data Node = Node
 
 type NodeState a = forall m. Monad m => StateT Node m a
 
+type NodeTriplet = (ID NodeID, Peer)
+
 -- A bucket representation
-type Bucket = [Node]
+type Bucket = [NodeTriplet]
 
 sortBucketByDistance :: Bucket -> ID a -> Bucket
 sortBucketByDistance bl id = unpack . sort . pack $ bl
   where
     pack x = zip x $ map f x
-    f = safeXorByteString id . nodeID
+    f = safeXorByteString id . fst
     sort = sortBy (compare `on` snd)
     unpack = map fst
 
