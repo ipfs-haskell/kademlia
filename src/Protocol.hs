@@ -9,6 +9,7 @@ import GHC.Generics
 import qualified Data.Map as M
 import Control.Monad.Trans.State.Strict (StateT(..))
 import Data.Vector ((!))
+import Utils
 
 type Message = BS.ByteString
 
@@ -21,16 +22,6 @@ data RPC = PING
   | FIND_VALUE_REQUEST (ID Key)
   | FIND_VALUE_RESPONSE Bool DataBlock [NodeTriplet] deriving Generic
 
-countDownToZero 0 = [0]
-countDownToZero x = x:countDownToZero (x - 1)
-  
-byteStringToInteger :: BS.ByteString -> Integer
-byteStringToInteger x = pack . process . unpack $ x
-  where
-    unpack = BS.unpack
-    multF = map (\z -> 2 ^ (fst z * 8) * snd z)
-    process = multF . zip (countDownToZero $ BS.length x - 1) . map fromIntegral
-    pack = sum
     
 answer :: RPC -> NodeState RPC
 answer PING = StateT $ \n -> pure (PONG, n)
