@@ -1,14 +1,14 @@
 module Server where
 
-
 import Control.Concurrent (forkFinally)
 import qualified Control.Exception as E
-import Control.Monad (unless, forever, void)
+import Control.Monad (forever, unless, void)
 import qualified Data.ByteString as S
 import Network.Socket
 import Network.Socket.ByteString (recv, sendAll)
 
 type NumConn = Int
+
 type NumBytes = Int
 
 runServer :: ServiceName -> NumConn -> NumBytes -> IO ()
@@ -38,9 +38,7 @@ runServer s m n =
     talk = flip serviceClient n
 
 serviceClient conn n = do
-  msg <- recv conn n  
+  msg <- recv conn n
   unless (S.null msg) $ do
     sendAll conn msg
     serviceClient conn n
-
-

@@ -1,19 +1,19 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE Rank2Types #-}
 
-
 module Spec where
 
 import qualified Data.Bits as B
 import qualified Data.ByteString as BS
 import Data.Function (on)
 import Data.List (sortBy)
-import Network.Socket (SockAddr(..), HostAddress, ServiceName, SockAddr)
+import Network.Socket (HostAddress, ServiceName, SockAddr(..), SockAddr)
+
+import Control.Monad
+import Control.Monad.Trans.State.Strict (StateT)
 -- Change to Lazy Map later
 import qualified Data.Map.Strict as M
 import qualified Data.Vector as V
-import Control.Monad.Trans.State.Strict (StateT)
-import Control.Monad
 
 -- A local hash table
 type HashTable = M.Map (ID Key) DataBlock
@@ -24,6 +24,7 @@ type DataBlock = BS.ByteString
 type ID a = BS.ByteString
 
 data NodeID
+
 data Key
 
 -- Change this, this is the UDP peer
@@ -31,7 +32,6 @@ data Peer = Peer
   { peerIP :: HostAddress
   , peerPort :: ServiceName
   }
-
 
 -- A node in the Kademlia Network
 data Node = Node
@@ -41,7 +41,9 @@ data Node = Node
   , nodePeer :: Peer
   }
 
-type NodeState a = forall m. Monad m => StateT Node m a
+type NodeState a
+   = forall m. Monad m =>
+                 StateT Node m a
 
 type NodeTriplet = (ID NodeID, Peer)
 
@@ -64,6 +66,6 @@ safeXorByteString x y
   | lx == ly = unsafeXorByteString x y
   | lx > ly = unsafeXorByteString y $ BS.take ly x
   | otherwise = unsafeXorByteString x $ BS.take lx y
-  where 
+  where
     lx = BS.length x
     ly = BS.length y
