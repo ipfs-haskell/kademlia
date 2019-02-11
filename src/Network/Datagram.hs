@@ -7,7 +7,7 @@ module Network.Datagram
   , unwrap
   , datagram
   , MonadDatagram(..)
-  , UdpT
+  , UdpT(..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
