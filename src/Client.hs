@@ -17,8 +17,12 @@ connect addr = do
   sock <- D.UdpT ask
   liftIO $ N.connect sock addr
 
+close addr = do
+  sock <- D.UdpT ask
+  liftIO $ N.close sock
+
 send host port dgram = do
-  let hints = defaultHints { addrSocketType = Datagram }
+  let hints = defaultHints { addrSocketType = N.Datagram }
   addr:_ <- getAddrInfo (Just hints) (Just host) (Just port)
   sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
   runComputation (c addr dgram) sock

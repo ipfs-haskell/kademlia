@@ -2,13 +2,7 @@
 {-# LANGUAGE ConstraintKinds, DataKinds, FlexibleContexts,
   GeneralizedNewtypeDeriving, KindSignatures, TypeFamilies #-}
 
-module Network.Datagram
-  ( Datagram
-  , unwrap
-  , datagram
-  , MonadDatagram(..)
-  , UdpT(..)
-  ) where
+module Network.Datagram where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader
