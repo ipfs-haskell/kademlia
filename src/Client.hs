@@ -1,7 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures #-}
+-- {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Client where
@@ -12,6 +12,7 @@ import qualified Data.ByteString as BS
 import Network.Datagram as D
 import Network.Socket as N
 
+-- | Sample send, modify this later.
 send host port dgram = do
   let hints = defaultHints {addrSocketType = N.Datagram}
   addr:_ <- getAddrInfo (Just hints) (Just host) (Just port)

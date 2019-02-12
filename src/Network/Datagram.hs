@@ -1,9 +1,9 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# DataKinds #-}
-{-# FlexibleContexts #-}
-{-# GeneralizedNewtypeDeriving #-}
-{-# KindSignatures #-}
-{-# TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Network.Datagram where
 
