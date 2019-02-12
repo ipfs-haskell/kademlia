@@ -1,7 +1,9 @@
--- Written by Piyush Kurur (github.com/piyush-kurur) and Adithya Kumar (github.com/adithyaov)
-
-{-# LANGUAGE ConstraintKinds, DataKinds, FlexibleContexts,
-  GeneralizedNewtypeDeriving, KindSignatures, TypeFamilies #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# DataKinds #-}
+{-# FlexibleContexts #-}
+{-# GeneralizedNewtypeDeriving #-}
+{-# KindSignatures #-}
+{-# TypeFamilies #-}
 
 module Network.Datagram where
 
@@ -83,7 +85,7 @@ runUdpT1024 c =
   runReaderT $ unUdpT c
 
 -- | Connecting to a remote socket
-close :: (MonadIO m) => UdpT n m ()
+connect :: (MonadIO m) => N.SockAddr -> UdpT n m ()
 connect addr = do
   sock <- UdpT ask
   liftIO $ N.connect sock addr

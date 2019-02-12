@@ -6,16 +6,14 @@
 
 module Client where
 
-import qualified Control.Exception as E
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Reader
 import qualified Data.ByteString as BS
 import Network.Datagram as D
-import Control.Monad.Trans.Reader
 import Network.Socket as N
-import Control.Monad.IO.Class (liftIO)
-
 
 send host port dgram = do
-  let hints = defaultHints { addrSocketType = N.Datagram }
+  let hints = defaultHints {addrSocketType = N.Datagram}
   addr:_ <- getAddrInfo (Just hints) (Just host) (Just port)
   sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
   D.runUdpT1024 (c addr dgram) sock
