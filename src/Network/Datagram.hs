@@ -90,6 +90,12 @@ connect addr = do
   sock <- UdpT ask
   liftIO $ N.connect sock addr
 
+-- | Bind socket to an addr
+bind :: (MonadIO m) => N.SockAddr -> UdpT n m ()
+bind addr = do
+  sock <- UdpT ask
+  liftIO $ N.bind sock addr
+
 -- | Closing a socket
 close :: (MonadIO m) => UdpT n m ()
 close = do
