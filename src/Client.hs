@@ -13,26 +13,14 @@ import Control.Monad.Trans.Reader
 import Network.Socket as N
 import Control.Monad.IO.Class (liftIO)
 
-connect addr = do
-  sock <- D.UdpT ask
-  liftIO $ N.connect sock addr
-
-close addr = do
-  sock <- D.UdpT ask
-  liftIO $ N.close sock
 
 send host port dgram = do
   let hints = defaultHints { addrSocketType = N.Datagram }
   addr:_ <- getAddrInfo (Just hints) (Just host) (Just port)
   sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
-  runComputation (c addr dgram) sock
+  D.runUdpT1024 (c addr dgram) sock
   where
     c addr dgram = do
-      Client.connect $ addrAddress addr
+      D.connect $ addrAddress addr
       flip D.send dgram $ addrAddress addr
-
-runComputation :: UdpT 1024 IO a -> Socket -> IO a
-runComputation c =
-  runReaderT $ unUdpT c
-
-
+      D.close

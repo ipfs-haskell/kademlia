@@ -1,4 +1,5 @@
--- Written by Piyush Kurur (github.com/piyush-kurur)
+-- Written by Piyush Kurur (github.com/piyush-kurur) and Adithya Kumar (github.com/adithyaov)
+
 {-# LANGUAGE ConstraintKinds, DataKinds, FlexibleContexts,
   GeneralizedNewtypeDeriving, KindSignatures, TypeFamilies #-}
 
@@ -9,7 +10,7 @@ import Control.Monad.Trans.Reader
 import qualified Data.ByteString as BS
 import Data.Proxy
 import GHC.TypeLits
-import Network.Socket (SockAddr, Socket)
+import qualified Network.Socket as N
 import qualified Network.Socket.ByteString as Socket
 
 -- | A datagram of size at most bound
@@ -53,7 +54,7 @@ class (KnownNat (Bound m), MonadIO m) =>
 -- | A monad transformer that sends messages of at most n bytes as a
 -- UDP packet.
 newtype UdpT (n :: Nat) m a = UdpT
-  { unUdpT :: ReaderT Socket m a
+  { unUdpT :: ReaderT N.Socket m a
   } deriving (Functor, Applicative, Monad, MonadIO)
 
 -- TODO: write a function to run an action in UdpT.
@@ -66,7 +67,7 @@ messageSize = fmap (fromEnum . natVal) getSizeProxy
 
 instance (KnownNat n, MonadIO m) => MonadDatagram (UdpT n m) where
   type Bound (UdpT n m) = n
-  type Address (UdpT n m) = SockAddr
+  type Address (UdpT n m) = N.SockAddr
   send addr dgram = do
     sock <- UdpT ask
     liftIO $ Socket.sendAllTo sock (unwrap dgram) addr
@@ -75,3 +76,21 @@ instance (KnownNat n, MonadIO m) => MonadDatagram (UdpT n m) where
     msize <- messageSize
     (msg, addr) <- liftIO $ Socket.recvFrom sock msize
     return (unsafeDatagram msg, addr)
+
+-- | Running a UdpT computation with an environment
+runUdpT1024 :: UdpT 1024 IO a -> N.Socket -> IO a
+runUdpT1024 c =
+  runReaderT $ unUdpT c
+
+-- | Connecting to a remote socket
+close :: (MonadIO m) => UdpT n m ()
+connect addr = do
+  sock <- UdpT ask
+  liftIO $ N.connect sock addr
+
+-- | Closing a socket
+close :: (MonadIO m) => UdpT n m ()
+close = do
+  sock <- UdpT ask
+  liftIO $ N.close sock
+
