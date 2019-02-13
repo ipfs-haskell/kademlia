@@ -97,7 +97,7 @@ bind addr = do
   liftIO $ N.bind sock addr
 
 -- | Listen on a socket (server)
-listen :: (MonadIO m) => N.SockAddr -> UdpT n m ()
+listen :: (MonadIO m) => Int -> UdpT n m ()
 listen n = do
   sock <- UdpT ask
   liftIO $ N.listen sock n

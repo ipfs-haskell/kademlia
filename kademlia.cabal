@@ -16,6 +16,7 @@ library
   exposed-modules:     Spec 
                      , Protocol
                      , Client
+                     , Server
   other-modules:       Network.Datagram      
                      , Utils
   -- other-extensions:    
