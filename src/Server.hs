@@ -12,27 +12,20 @@ type NumConn = Int
 type NumBytes = Int
 
 runServer :: ServiceName -> NumConn -> NumBytes -> IO ()
-runServer s m n =
-  withSocketDo $ do
-    addr <- resolve s
-    E.bracket (open addr) close loop
-  where
-    resolve port = do
-      let hints =
-            defaultHints {addrFlags = [AI_PASSIVE], addrSocketType = Datagram}
-      addr:_ <- getAddrInfo (Just hints) Nothing (Just port)
-      return addr
-    open addr = do
-      sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
-      setSocketOption sock ReuseAddr 1 -- Useful for debugging
-      fd <- fdSocket sock
-      setCloseOnExecIfNeeded fd
-      bind sock (addrAddress addr)
-      listen sock m
-      return sock
-    loop sock =
+runServer s m n port = do
+    let hints =
+          defaultHints {addrFlags = [AI_PASSIVE], addrSocketType = Datagram}
+    addr:_ <- getAddrInfo (Just hints) Nothing (Just port)
+    sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
+    D.runUdpT1024 (c addr dgram) sock
+    where
+      c = do
+      liftIO $ setSocketOption sock ReuseAddr 1 -- Useful for debugging
+      liftIO $ fmap setCloseOnExec $ fdSocket sock
+      bind (addrAddress addr)
+      listen m
       forever $ do
-        (conn, peer) <- accept sock
+        (conn, peer) <- accept
         putStrLn $ "Connection from " ++ show peer
         void $ forkFinally (talk conn) (\_ -> close conn)
     talk = flip serviceClient n
