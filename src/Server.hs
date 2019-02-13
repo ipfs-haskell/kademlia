@@ -14,6 +14,7 @@ type NumConn = Int
 
 type NumBytes = Int
 
+-- Need to handle exceptions
 runServer s m n port = do
     let hints =
           defaultHints {addrFlags = [AI_PASSIVE], addrSocketType = Datagram}
