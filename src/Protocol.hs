@@ -37,9 +37,16 @@ answer (STORE_REQUEST i d) =
     return (STORE_RESPONSE i, nN)
 answer (FIND_NODE_REQUEST id) =
   StateT $ \n -> do
-    let diff = safeXorByteString id $ nodeID n
-    let i = round . log . fromInteger . byteStringToInteger $ diff
+    let i = idDiffLog id $ nodeID n
     return (FIND_NODE_RESPONSE $ nodeBuckets n ! i, n)
+
+-- Check for least recent reply and remove/insert accordingly
+updateBucket :: NodeTriplet -> NodeState ()
+
+
+
+
+
 
 nodeToTriplet :: Node -> NodeTriplet
 nodeToTriplet n = (nodeID n, nodePeer n)
