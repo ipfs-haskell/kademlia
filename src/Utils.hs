@@ -2,6 +2,7 @@ module Utils where
 
 import qualified Data.ByteString as BS
 import Spec as S
+import qualified Network.Datagram as D
 
 countDownToZero 0 = [0]
 countDownToZero x = x : countDownToZero (x - 1)
@@ -16,3 +17,5 @@ byteStringToInteger x = pack . process . unpack $ x
 
 idDiffLog :: ID a -> ID b -> Int
 idDiffLog id1 = round . log . fromInteger . byteStringToInteger . safeXorByteString id1
+
+printRecvDatagram (dgram, addr) = putStrLn $ show (D.unwrap dgram) ++ " << " ++ show addr

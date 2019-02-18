@@ -40,13 +40,6 @@ answer (FIND_NODE_REQUEST id) =
     let i = idDiffLog id $ nodeID n
     return (FIND_NODE_RESPONSE $ nodeBuckets n ! i, n)
 
--- Check for least recent reply and remove/insert accordingly
-updateBucket :: NodeTriplet -> NodeState ()
-
-
-
-
-
 
 nodeToTriplet :: Node -> NodeTriplet
 nodeToTriplet n = (nodeID n, nodePeer n)

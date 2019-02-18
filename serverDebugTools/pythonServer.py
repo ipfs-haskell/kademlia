@@ -8,3 +8,4 @@ serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
 while True:
   data, addr = serverSock.recvfrom(1024)
   print data, addr
+  sent = serverSock.sendto(data, addr)
