@@ -6,4 +6,11 @@ ghc:
 before_install:
   - sudo apt purge cabal*
   - sudo apt install cabal-install-2.2
-  - cabal-2.2 --version || cabal --version || cabal-install-2.2 --version || /opt/cabal/bin/cabal --version
+  - /opt/cabal/bin/cabal --version
+  - alias myCabal='/opt/cabal/bin/cabal'
+
+install:
+  - myCabal install --only-dependencies --enable-tests
+
+script:
+  - myCabal configure --enable-tests && myCabal build && myCabal test
