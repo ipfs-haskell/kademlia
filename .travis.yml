@@ -6,4 +6,4 @@ ghc:
 before_install:
   - sudo apt purge cabal*
   - sudo apt install cabal-install-2.2
-  - cabal --version
+  - cabal-2.2 --version || cabal --version || cabal-install-2.2 --version || /opt/cabal/bin/cabal --version
