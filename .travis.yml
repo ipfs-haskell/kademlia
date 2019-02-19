@@ -7,10 +7,10 @@ before_install:
   - sudo apt purge cabal*
   - sudo apt install cabal-install-2.2
   - /opt/cabal/bin/cabal --version
-  - alias myCabal='/opt/cabal/bin/cabal'
+  - /opt/cabal/bin/cabal update
 
 install:
-  - myCabal install --only-dependencies --enable-tests
+  - /opt/cabal/bin/cabal install --only-dependencies --enable-tests
 
 script:
-  - myCabal configure --enable-tests && myCabal build && myCabal test
+  - /opt/cabal/bin/cabal configure --enable-tests && /opt/cabal/bin/cabal build && /opt/cabal/bin/cabal test
