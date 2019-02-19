@@ -1,3 +1,5 @@
 language: haskell
 ghc:
   - "8.2.2"
+install:
+  - apt install cabal-install-2.2
