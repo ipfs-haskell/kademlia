@@ -1,0 +1,16 @@
+language: haskell
+
+ghc:
+  - "8.2.2"
+
+before_install:
+  - sudo apt purge cabal*
+  - sudo apt install cabal-install-2.2
+  - /opt/cabal/bin/cabal --version
+  - /opt/cabal/bin/cabal update
+
+install:
+  - /opt/cabal/bin/cabal install --only-dependencies --enable-tests
+
+script:
+  - /opt/cabal/bin/cabal configure --enable-tests && /opt/cabal/bin/cabal build && /opt/cabal/bin/cabal test
