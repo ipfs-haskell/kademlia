@@ -14,7 +14,7 @@ import Network.Socket as N
 import Utils
 
 -- | Sample send, modify this later.
-send host port dgram = do
+runClient host port dgram = do
   let hints = defaultHints {addrSocketType = N.Datagram}
   addr:_ <- getAddrInfo (Just hints) (Just host) (Just port)
   sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)

@@ -21,9 +21,9 @@ runServer port = do
           defaultHints {addrFlags = [AI_PASSIVE], addrSocketType = Datagram}
     addr:_ <- getAddrInfo (Just hints) Nothing (Just port)
     sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
-    D.runUdpT1024 (serverComputation addr m) sock
+    D.runUdpT1024 (serverComputation addr) sock
 
-serverComputation addr m = do
+serverComputation addr = do
   -- sock <- D.UdpT ask
   -- liftIO $ setSocketOption sock ReuseAddr 1
   -- -- If the prefork technique is not used,
