@@ -38,7 +38,7 @@ answer (STORE_REQUEST i d) =
 
 answer (FIND_NODE_REQUEST id) =
   StateT $ \n -> do
-    let kClosestNodes = findKClosestNodes n id
+    let kClosestNodes = findKClosestNodes n id 4 --TODO: use Global Parameter k
     return (FIND_NODE_RESPONSE $ kClosestNodes, n)
 
 answer (FIND_VALUE_REQUEST key) = 
@@ -48,7 +48,7 @@ answer (FIND_VALUE_REQUEST key) =
       Just v  ->  return (FIND_VALUE_RESPONSE True v [], n)
       Nothing ->  
                   let
-                    kClosestNodes = findKClosestNodes n key
+                    kClosestNodes = findKClosestNodes n key 4 --TODO: use Global Parameter k
                   in
                     return (FIND_VALUE_RESPONSE False mempty kClosestNodes, n)
 
@@ -95,15 +95,16 @@ refreshBucket node clientTriplet =
 --TODO: Use k instead of 4
 findKClosestNodes ::    Node           -- Node State
                     ->  ID a           -- Client's ID
-                    ->  [NodeTriplet]  -- K closest Entries
+                    ->  Int            -- k
+                    ->  [NodeTriplet]  -- k closest Entries
 
-findKClosestNodes Node( nodeID_, buckets, _, _) id
-                
+findKClosestNodes Node( nodeID_, buckets, _, _) id k
+  | k <= 0 = []
   -- | When total no of entries <= k, returns all the entries
-  | totalEntries <= 4       = allEntries 
+  | totalEntries <= k       = allEntries 
   -- | When Client's corresponding bucket has k entries
-  | length mainBucket == 4  = mainBucket
-  | otherwise               = take 4 allEntriesSorted
+  | length mainBucket == k  = mainBucket
+  | otherwise               = take k allEntriesSorted
   
   where
 
