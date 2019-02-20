@@ -15,9 +15,15 @@ byteStringToInteger x = pack . process . unpack $ x
 
 
 -- Moves from index to tail
-moveIthToTail :: [a] -> Int -> [a]
+moveIthToTail :: 	[a] -- Original List
+				-> 	Int -- Index of the Item to be shifted at the tail
+				-> 	[a] -- Final List
+
 moveIthToTail [] _ = []
-moveIthToTail x index = let
-						(p,q:r) = splitAt index x
-					 in
-					 	p ++ r ++ [q]
+moveIthToTail x index = 
+	| index < 0 || index >= length x	=	x
+	| otherwise							=
+											let
+												(p,q:r) = splitAt index x
+											in
+												p ++ r ++ [q]
