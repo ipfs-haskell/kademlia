@@ -7,7 +7,8 @@ import Control.Monad.Trans.State.Strict (StateT(..))
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import Data.Serialize as C
-import Data.Vector ((!))
+import Data.List
+import Data.Vector ((!),(//),sum, toList)
 import GHC.Generics
 import Spec as S
 import Utils
@@ -74,41 +75,36 @@ refreshBucket node clientTriplet =
         Just i  ->  
             let
             --TODO: newBucket = (deleteBy (\x y-> fst x == fst y) clientTriplet kBucket) ++ [clientTriplet]
-              newBucket = moveIthToTail i bucket
-              newNodeBuckets = (//) allBuckets [(bucketIndex, newBucket)]
+              newBucket = moveIthToTail bucket i
+              newNodeBuckets = allBuckets // [(bucketIndex, newBucket)]
             in
               node { nodeBuckets = newNodeBuckets }
         Nothing ->  
-            if length bucket < 4 then --TODO: use k parameter
-                node { nodeBuckets = kBuckets ++ [clientTriplet]}   
-            else
-              --TODO: Handle this case
-              if isNodeAlive (head bucket) then
-                node { nodeBuckets = (//) allBuckets 
-                          [(bucketIndex, moveIthToTail 0 bucket)] 
-                   }
+            if length bucket < 4 --TODO: use k parameter
+              then node { nodeBuckets = allBuckets // [(bucketIndex, bucket ++ [clientTriplet])] }   
+            --TODO: Handle this case
+            else 
+              if isNodeAlive (head bucket) then 
+                node { nodeBuckets =  allBuckets // [(bucketIndex, moveIthToTail bucket 0)] }
               else
-                node { nodeBuckets = (//) allBuckets 
-                          [(bucketIndex, tail bucket ++ [clientTriplet])] 
+                node { nodeBuckets = allBuckets // [ ( bucketIndex, (Data.List.tail bucket)++[clientTriplet] ) ] }
 
 
---TODO: Use k instead of 4
+
 findKClosestNodes ::    Node           -- Node State
                     ->  ID a           -- Client's ID
                     ->  Int            -- k
                     ->  [NodeTriplet]  -- k closest Entries
 
-findKClosestNodes Node( nodeID_, buckets, _, _) id k
-  | k <= 0 = []
-  -- | When total no of entries <= k, returns all the entries
+findKClosestNodes (Node nodeID_ buckets x y) id k
+  | k <= 0                  = []
   | totalEntries <= k       = allEntries 
   -- | When Client's corresponding bucket has k entries
   | length mainBucket == k  = mainBucket
   | otherwise               = take k allEntriesSorted
-  
-  where
 
-    totalEntries      = sum $ map length buckets
+  where
+    totalEntries      = Data.Vector.sum $ fmap Data.List.length buckets
     allEntries        = mconcat $ toList buckets
     bucketIndex       = findBucketIndex nodeID_ id
     mainBucket        = buckets ! bucketIndex
@@ -118,16 +114,17 @@ findKClosestNodes Node( nodeID_, buckets, _, _) id k
 --TODO: complete it
 isNodeAlive ::  NodeTriplet -- Triplet of Node beint Pinged
             ->  Bool        -- Status of Ping
-isNodeAlive (id, Peer(ip, serviceName)) = True
+isNodeAlive (id, Peer ip serviceName) = True
 
 
 -- It finds index of bucket where client belongs for given Node.
 findBucketIndex ::   ID NodeID  -- Node ID
                   -> ID NodeID  -- Client ID
                   -> Int        -- Bucket Index
+
 findBucketIndex nodeID_ clientID = 
       let
         distance = S.safeXorByteString nodeID_ clientID
-          bucketIndex = round . logBase 2 . fromInteger . byteStringToInteger $ distance
+        bucketIndex = round . logBase 2 . fromInteger . byteStringToInteger $ distance
       in
         bucketIndex
