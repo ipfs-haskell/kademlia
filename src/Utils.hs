@@ -20,10 +20,9 @@ moveIthToTail :: 	[a] -- Original List
 				-> 	[a] -- Final List
 
 moveIthToTail [] _ = []
-moveIthToTail x index = 
+moveIthToTail x index
 	| index < 0 || index >= length x	=	x
-	| otherwise							=
-											let
+	| otherwise							=	let
 												(p,q:r) = splitAt index x
 											in
 												p ++ r ++ [q]
