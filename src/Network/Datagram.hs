@@ -1,7 +1,9 @@
--- Written by Piyush Kurur (github.com/piyush-kurur) and Adithya Kumar (github.com/adithyaov)
-
-{-# LANGUAGE ConstraintKinds, DataKinds, FlexibleContexts,
-  GeneralizedNewtypeDeriving, KindSignatures, TypeFamilies #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Network.Datagram where
 
@@ -83,14 +85,32 @@ runUdpT1024 c =
   runReaderT $ unUdpT c
 
 -- | Connecting to a remote socket
-close :: (MonadIO m) => UdpT n m ()
+connect :: (MonadIO m) => N.SockAddr -> UdpT n m ()
 connect addr = do
   sock <- UdpT ask
   liftIO $ N.connect sock addr
+
+-- | Bind socket to an addr
+bind :: (MonadIO m) => N.SockAddr -> UdpT n m ()
+bind addr = do
+  sock <- UdpT ask
+  liftIO $ N.bind sock addr
+
+-- | Listen on a socket (server)
+listen :: (MonadIO m) => Int -> UdpT n m ()
+listen n = do
+  sock <- UdpT ask
+  liftIO $ N.listen sock n
 
 -- | Closing a socket
 close :: (MonadIO m) => UdpT n m ()
 close = do
   sock <- UdpT ask
   liftIO $ N.close sock
+
+-- | Accepting a socket
+accept :: (MonadIO m) => UdpT n m (N.Socket, N.SockAddr)
+accept = do
+  sock <- UdpT ask
+  liftIO $ N.accept sock
 

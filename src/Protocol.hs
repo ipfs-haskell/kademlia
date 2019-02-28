@@ -53,7 +53,6 @@ answer (FIND_VALUE_REQUEST key) =
                   in
                     return (FIND_VALUE_RESPONSE False mempty kClosestNodes, n)
 
-
 nodeToTriplet :: Node -> NodeTriplet
 nodeToTriplet n = (nodeID n, nodePeer n)
 
