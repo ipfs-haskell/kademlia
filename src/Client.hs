@@ -1,9 +1,9 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
--- {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeFamilies #-}
 
+-- {-# LANGUAGE KindSignatures #-}
 module Client where
 
 import Control.Monad.IO.Class (liftIO)

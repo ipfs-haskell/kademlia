@@ -11,6 +11,7 @@ import Network.Socket (HostAddress, ServiceName, SockAddr(..), SockAddr)
 
 import Control.Monad
 import Control.Monad.Trans.State.Strict (StateT)
+
 -- Change to Lazy Map later
 import qualified Data.Map.Strict as M
 import qualified Data.Vector as V
@@ -31,7 +32,7 @@ data Key
 data Peer = Peer
   { peerIP :: HostAddress
   , peerPort :: ServiceName
-  }
+  } deriving (Eq)
 
 -- A node in the Kademlia Network
 data Node = Node

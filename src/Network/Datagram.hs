@@ -81,8 +81,7 @@ instance (KnownNat n, MonadIO m) => MonadDatagram (UdpT n m) where
 
 -- | Running a UdpT computation with an environment
 runUdpT1024 :: UdpT 1024 IO a -> N.Socket -> IO a
-runUdpT1024 c =
-  runReaderT $ unUdpT c
+runUdpT1024 c = runReaderT $ unUdpT c
 
 -- | Connecting to a remote socket
 connect :: (MonadIO m) => N.SockAddr -> UdpT n m ()
@@ -113,4 +112,3 @@ accept :: (MonadIO m) => UdpT n m (N.Socket, N.SockAddr)
 accept = do
   sock <- UdpT ask
   liftIO $ N.accept sock
-

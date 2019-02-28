@@ -1,8 +1,8 @@
 module Utils where
 
 import qualified Data.ByteString as BS
-import Spec as S
 import qualified Network.Datagram as D
+import Spec as S
 
 countDownToZero 0 = [0]
 countDownToZero x = x : countDownToZero (x - 1)
@@ -16,20 +16,20 @@ byteStringToInteger x = pack . process . unpack $ x
     pack = sum
 
 -- Moves from index to tail
-moveIthToTail :: 	[a] -- Original List
-				-> 	Int -- Index of the Item to be shifted at the tail
-				-> 	[a] -- Final List
-
+moveIthToTail ::
+     [a] -- Original List
+  -> Int -- Index of the Item to be shifted at the tail
+  -> [a] -- Final List
 moveIthToTail [] _ = []
 moveIthToTail x index
-	| index < 0 || index >= length x	=	x
-	| otherwise							=	let
-												(p,q:r) = splitAt index x
-											in
-												p ++ r ++ [q]
+  | index < 0 || index >= length x = x
+  | otherwise =
+    let (p, q:r) = splitAt index x
+     in p ++ r ++ [q]
 
 idDiffLog :: ID a -> ID b -> Int
-idDiffLog id1 = round . log . fromInteger . byteStringToInteger . safeXorByteString id1
+idDiffLog id1 =
+  round . logBase 2 . fromInteger . byteStringToInteger . safeXorByteString id1
 
-printRecvDatagram (dgram, addr) = putStrLn $ show (D.unwrap dgram) ++ " << " ++ show addr
-
+printRecvDatagram (dgram, addr) =
+  putStrLn $ show (D.unwrap dgram) ++ " << " ++ show addr
