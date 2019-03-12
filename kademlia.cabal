@@ -17,6 +17,7 @@ library
                      , Protocol
                      , Client
                      , Server
+                     , Bucket
   other-modules:       Network.Datagram      
                      , Utils
   -- other-extensions:    

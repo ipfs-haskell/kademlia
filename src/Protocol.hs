@@ -55,16 +55,17 @@ nodeToTriplet n = (nodeID n, nodePeer n)
 -- Updates Node's Buckets according to Protocol Rules.
 -- Used when Node gets a request from some client
 -- Or gets a reply from client
-refreshBucket :: Node -> NodeTriplet -> Node
-refreshBucket node clientTriplet =
-  let clientID = fst clientTriplet
-      nodeID_ = nodeID node
-      allBuckets = nodeBuckets node
-      bucketIndex = idDiffLog nodeID_ clientID
-      bucket = allBuckets ! bucketIndex --TODO: handle case when bucket doesnt exist
+refreshBucket :: NodeTriplet -> Node -> Node
+refreshBucket clientTriplet node =
+  let 
+    clientID = fst clientTriplet
+    nodeID_ = nodeID node
+    allBuckets = nodeBuckets node
+    bucketIndex = idDiffLog nodeID_ clientID
+    bucket = allBuckets ! bucketIndex --TODO: handle case when bucket doesnt exist
     --TODO: clientIndex = findIndex (\x -> (fst x) == clientID) bucket
-      clientIndex = elemIndex clientTriplet bucket
-   in case clientIndex of
+    clientIndex = elemIndex clientTriplet bucket
+  in case clientIndex of
         Just i
             --TODO: newBucket = (deleteBy (\x y-> fst x == fst y) clientTriplet kBucket) ++ [clientTriplet]
          ->
@@ -74,7 +75,7 @@ refreshBucket node clientTriplet =
         Nothing
           | length bucket < 4 --TODO: use k parameter
            ->
-            node
+             node
               { nodeBuckets =
                   allBuckets // [(bucketIndex, bucket ++ [clientTriplet])]
               }
@@ -85,7 +86,7 @@ refreshBucket node clientTriplet =
                   allBuckets // [(bucketIndex, moveIthToTail bucket 0)]
               }
           | otherwise ->
-            node
+             node
               { nodeBuckets =
                   allBuckets //
                   [(bucketIndex, Data.List.tail bucket ++ [clientTriplet])]
