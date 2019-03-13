@@ -3,7 +3,8 @@
 
 module Protocol where
 
-import Control.Monad.Trans.State.Strict (StateT(..))
+import Control.Monad.Trans.State.Strict as St
+import Control.Monad.Trans.Reader
 import qualified Data.ByteString as BS
 import Data.List
 import qualified Data.Map as M
@@ -12,6 +13,7 @@ import Data.Vector ((!), (//), sum, toList)
 import GHC.Generics
 import Spec as S
 import Utils
+import Control.Monad.Trans.Class
 
 type Message = BS.ByteString
 
@@ -30,24 +32,29 @@ data RPC
   deriving (Generic)
 
 answer :: RPC -> NodeState RPC
-answer PING = StateT $ \n -> pure (PONG, n)
-answer (STORE_REQUEST i d) =
-  StateT $ \n -> do
-    let nHashTable = M.insert i d . nodeHashTable $ n
-    let nN = n {nodeHashTable = nHashTable}
-    return (STORE_RESPONSE i, nN)
-answer (FIND_NODE_REQUEST id) =
-  StateT $ \n -> do
-    let kClosestNodes = findKClosestNodes n id 4 --TODO: use Global Parameter k
-    return (FIND_NODE_RESPONSE kClosestNodes, n)
-answer (FIND_VALUE_REQUEST key) =
-  StateT $ \n -> do
-    let value = M.lookup key (nodeHashTable n)
-    case value of
-      Just v -> return (FIND_VALUE_RESPONSE True v [], n)
-      Nothing ->
-        let kClosestNodes = findKClosestNodes n key 4 --TODO: use Global Parameter k
-         in return (FIND_VALUE_RESPONSE False mempty kClosestNodes, n)
+
+answer PING = return PONG
+
+answer (STORE_REQUEST i d) = do
+  n <- lift St.get
+  let nHashTable = M.insert i d . nodeHashTable $ n
+  let nN = n {nodeHashTable = nHashTable}
+  lift $ St.put nN
+  return $ STORE_RESPONSE i
+
+answer (FIND_NODE_REQUEST id) = do
+  n <- lift St.get
+  k <- fmap kGEnv ask
+  kClosestNodes <- findKClosestNodes_ id
+  return $ FIND_NODE_RESPONSE kClosestNodes
+
+answer (FIND_VALUE_REQUEST key) = do
+  n <- lift St.get
+  k <- fmap kGEnv ask
+  let value = M.lookup key (nodeHashTable n)
+  return $ case value of
+    Just v -> FIND_VALUE_RESPONSE True v []
+    Nothing -> FIND_VALUE_RESPONSE False mempty $ findKClosestNodes n key k
 
 nodeToTriplet :: Node -> NodeTriplet
 nodeToTriplet n = (nodeID n, nodePeer n)
@@ -92,6 +99,20 @@ refreshBucket clientTriplet node =
                   [(bucketIndex, Data.List.tail bucket ++ [clientTriplet])]
               }
 
+findKClosestNodes_ :: ID a -> NodeState [NodeTriplet]
+findKClosestNodes_ id = do
+  k <- fmap kGEnv ask
+  n <- lift St.get
+  let totalEntries = Data.Vector.sum . fmap Data.List.length . nodeBuckets $ n
+  let allEntries = mconcat . toList . nodeBuckets $ n
+  let bucketIndex = idDiffLog id . nodeID $ n
+  let mainBucket = nodeBuckets n ! bucketIndex
+  let allEntriesSorted = S.sortBucketByDistance allEntries id
+  return $
+    if totalEntries <= k then allEntries
+    else if length mainBucket == k then mainBucket
+    else take k allEntriesSorted
+  
 findKClosestNodes ::
      Node -- Node State
   -> ID a -- Client's ID

@@ -11,6 +11,7 @@ import Network.Socket (HostAddress, ServiceName, SockAddr(..), SockAddr)
 
 import Control.Monad
 import Control.Monad.Trans.State.Strict (StateT)
+import Control.Monad.Trans.Reader
 
 -- Change to Lazy Map later
 import qualified Data.Map.Strict as M
@@ -44,7 +45,13 @@ data Node = Node
 
 type NodeState a
    = forall m. Monad m =>
-                 StateT Node m a
+                 ReaderT GlobalEnv (StateT Node m) a
+
+data GlobalEnv = GlobalEnv
+  { alphaGEnv :: Int
+  , bGEnv :: Int
+  , kGEnv :: Int
+  }
 
 type NodeTriplet = (ID NodeID, Peer)
 
