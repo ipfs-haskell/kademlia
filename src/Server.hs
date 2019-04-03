@@ -33,6 +33,8 @@ serverComputation addr
   lift . lift . D.bind . addrAddress $ addr
   forever $ do
     (dgram, addr) <- lift . lift $ D.receive
-    let rpc = Se.decode . unwrap $ dgram :: Either String RPC
-    liftIO $ print rpc
-    lift . lift $ D.send addr dgram
+    let erpc = Se.decode . unwrap $ dgram :: Either String RPC
+    liftIO $ print erpc
+    case erpc of
+      Left err -> liftIO $ print err
+      Right rpc -> answer rpc >>= lift . lift . D.send addr . D.unsafeDatagram . Se.encode
