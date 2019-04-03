@@ -1,13 +1,16 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE Rank2Types #-}
 
 module Spec where
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.Bits as B
 import qualified Data.ByteString as BS
 import Data.Function (on)
 import Data.List (sortBy)
 import Network.Socket (HostAddress, ServiceName, SockAddr(..), SockAddr)
+import GHC.Generics
 
 import Control.Monad
 import Control.Monad.Trans.State.Strict (StateT)
@@ -16,6 +19,8 @@ import Control.Monad.Trans.Reader
 -- Change to Lazy Map later
 import qualified Data.Map.Strict as M
 import qualified Data.Vector as V
+
+import Data.Serialize as Se
 
 -- A local hash table
 type HashTable = M.Map (ID Key) DataBlock
@@ -33,7 +38,9 @@ data Key
 data Peer = Peer
   { peerIP :: HostAddress
   , peerPort :: ServiceName
-  } deriving (Eq)
+  } deriving (Eq, Show, Generic)
+
+instance Serialize Peer
 
 -- A node in the Kademlia Network
 data Node = Node
@@ -41,10 +48,10 @@ data Node = Node
   , nodeBuckets :: V.Vector Bucket
   , nodeHashTable :: HashTable
   , nodePeer :: Peer
-  }
+  } deriving Show
 
-type NodeState a
-   = forall m. Monad m =>
+type ComputationEnv a
+   = forall m. MonadIO m =>
                  ReaderT GlobalEnv (StateT Node m) a
 
 data GlobalEnv = GlobalEnv

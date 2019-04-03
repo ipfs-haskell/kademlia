@@ -1,7 +1,11 @@
+{-# LANGUAGE Rank2Types #-}
+
 module Bucket where
 
+import Control.Monad.Trans.Class
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.State.Strict as St
+import Control.Monad.Trans.Reader
 import qualified Data.ByteString as BS
 import Data.List
 import qualified Data.Map as M
@@ -31,14 +35,15 @@ bucketLimit l b
   | otherwise = fmap (`removeTripletAfterCheck` b) $ isNodeAlive $ head b
 
 -- | Buckets always exist, they might be empty
-refreshBucket :: MonadIO m => NodeTriplet -> StateT Node m ()
+refreshBucket :: NodeTriplet -> ComputationEnv ()
 refreshBucket t = do
-  n <- St.get
+  n <- lift St.get
+  k <- fmap kGEnv ask
   let cID = fst t
   let nID = nodeID n
   let allBuckets = nodeBuckets n
   let bucketIndex = idDiffLog nID cID
   let bucket = allBuckets ! bucketIndex
-  modifiedBucket <- liftIO $ bucketLimit 4 . addIfNotInTail t . moveItemToEndIfExists t $ bucket
-  St.put $ n { nodeBuckets = allBuckets // [(bucketIndex, modifiedBucket)] }
+  modifiedBucket <- liftIO $ bucketLimit k . addIfNotInTail t . moveItemToEndIfExists t $ bucket
+  lift . St.put $ n { nodeBuckets = allBuckets // [(bucketIndex, modifiedBucket)] }
 

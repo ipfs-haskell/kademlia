@@ -3,8 +3,9 @@
 
 module Protocol where
 
-import Control.Monad.Trans.State.Strict as St
+import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State.Strict as St
 import qualified Data.ByteString as BS
 import Data.List
 import qualified Data.Map as M
@@ -13,7 +14,7 @@ import Data.Vector ((!), (//), sum, toList)
 import GHC.Generics
 import Spec as S
 import Utils
-import Control.Monad.Trans.Class
+import Data.Serialize as Se
 
 type Message = BS.ByteString
 
@@ -29,32 +30,31 @@ data RPC
   | FIND_VALUE_RESPONSE Bool
                         DataBlock
                         [NodeTriplet]
-  deriving (Generic)
+  deriving (Generic, Show)
 
-answer :: RPC -> NodeState RPC
+instance Serialize RPC
 
+answer :: RPC -> ComputationEnv RPC
 answer PING = return PONG
-
 answer (STORE_REQUEST i d) = do
   n <- lift St.get
   let nHashTable = M.insert i d . nodeHashTable $ n
   let nN = n {nodeHashTable = nHashTable}
   lift $ St.put nN
   return $ STORE_RESPONSE i
-
 answer (FIND_NODE_REQUEST id) = do
   n <- lift St.get
   k <- fmap kGEnv ask
   kClosestNodes <- findKClosestNodes_ id
   return $ FIND_NODE_RESPONSE kClosestNodes
-
 answer (FIND_VALUE_REQUEST key) = do
   n <- lift St.get
   k <- fmap kGEnv ask
   let value = M.lookup key (nodeHashTable n)
-  return $ case value of
-    Just v -> FIND_VALUE_RESPONSE True v []
-    Nothing -> FIND_VALUE_RESPONSE False mempty $ findKClosestNodes n key k
+  return $
+    case value of
+      Just v -> FIND_VALUE_RESPONSE True v []
+      Nothing -> FIND_VALUE_RESPONSE False mempty $ findKClosestNodes n key k
 
 nodeToTriplet :: Node -> NodeTriplet
 nodeToTriplet n = (nodeID n, nodePeer n)
@@ -64,15 +64,14 @@ nodeToTriplet n = (nodeID n, nodePeer n)
 -- Or gets a reply from client
 refreshBucket :: NodeTriplet -> Node -> Node
 refreshBucket clientTriplet node =
-  let 
-    clientID = fst clientTriplet
-    nodeID_ = nodeID node
-    allBuckets = nodeBuckets node
-    bucketIndex = idDiffLog nodeID_ clientID
-    bucket = allBuckets ! bucketIndex --TODO: handle case when bucket doesnt exist
+  let clientID = fst clientTriplet
+      nodeID_ = nodeID node
+      allBuckets = nodeBuckets node
+      bucketIndex = idDiffLog nodeID_ clientID
+      bucket = allBuckets ! bucketIndex --TODO: handle case when bucket doesnt exist
     --TODO: clientIndex = findIndex (\x -> (fst x) == clientID) bucket
-    clientIndex = elemIndex clientTriplet bucket
-  in case clientIndex of
+      clientIndex = elemIndex clientTriplet bucket
+   in case clientIndex of
         Just i
             --TODO: newBucket = (deleteBy (\x y-> fst x == fst y) clientTriplet kBucket) ++ [clientTriplet]
          ->
@@ -82,7 +81,7 @@ refreshBucket clientTriplet node =
         Nothing
           | length bucket < 4 --TODO: use k parameter
            ->
-             node
+            node
               { nodeBuckets =
                   allBuckets // [(bucketIndex, bucket ++ [clientTriplet])]
               }
@@ -93,26 +92,27 @@ refreshBucket clientTriplet node =
                   allBuckets // [(bucketIndex, moveIthToTail bucket 0)]
               }
           | otherwise ->
-             node
+            node
               { nodeBuckets =
                   allBuckets //
                   [(bucketIndex, Data.List.tail bucket ++ [clientTriplet])]
               }
 
-findKClosestNodes_ :: ID a -> NodeState [NodeTriplet]
+findKClosestNodes_ :: ID a -> ComputationEnv [NodeTriplet]
 findKClosestNodes_ id = do
   k <- fmap kGEnv ask
   n <- lift St.get
-  let totalEntries = Data.Vector.sum . fmap Data.List.length . nodeBuckets $ n
   let allEntries = mconcat . toList . nodeBuckets $ n
   let bucketIndex = idDiffLog id . nodeID $ n
   let mainBucket = nodeBuckets n ! bucketIndex
   let allEntriesSorted = S.sortBucketByDistance allEntries id
-  return $
-    if totalEntries <= k then allEntries
-    else if length mainBucket == k then mainBucket
-    else take k allEntriesSorted
-  
+  return $ caseReturn k mainBucket allEntriesSorted
+  where
+    caseReturn k mainBucket allEntriesSorted
+      | length allEntriesSorted <= k = allEntriesSorted
+      | length mainBucket == k = mainBucket
+      | otherwise = take k allEntriesSorted
+
 findKClosestNodes ::
      Node -- Node State
   -> ID a -- Client's ID
