@@ -8,7 +8,7 @@ import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader
 import qualified Data.ByteString as S
 import qualified Network.Datagram as D
-import Network.Socket
+import Network.Socket as N
 import Network.Socket.ByteString (recv, sendAll)
 import Utils
 import Data.Serialize as Se
@@ -28,13 +28,21 @@ type NumBytes = Int
 --   D.runUdpT1024 (serverComputation addr) sock
 
 -- ReaderT StateT UdpT
-serverComputation addr
+serverComputationUDP addr
  = do
-  lift . lift . D.bind . addrAddress $ addr
+  sock <- lift . lift . lift $ ask
+  liftIO . N.bind sock . addrAddress $ addr
   forever $ do
     (dgram, addr) <- lift . lift $ D.receive
     let erpc = Se.decode . unwrap $ dgram :: Either String RPC
     liftIO $ print erpc
     case erpc of
       Left err -> liftIO $ print err
-      Right rpc -> answer rpc >>= lift . lift . D.send addr . D.unsafeDatagram . Se.encode
+      Right rpc -> do
+        rpc' <- answer rpc
+        case datagram . Se.encode $ rpc' of
+          Nothing -> liftIO $ print "Packet size is too large"
+          Just x -> lift . lift . D.send addr $ x 
+
+
+
