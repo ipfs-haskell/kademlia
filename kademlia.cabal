@@ -13,13 +13,13 @@ build-type:          Simple
 -- extra-source-files:  ChangeLog.md
 
 library 
-  exposed-modules:     Spec 
-                     , Protocol
-                     , Client
-                     , Server
-                     , Bucket
-  other-modules:       Network.Datagram      
-                     , Utils
+  exposed-modules:     Protocol.Spec 
+  other-modules:       Util
+                     , Network.Datagram
+                     , Network.Method.Udp
+                     , Protocol.BucketUtil
+                     , Protocol.RPC
+                     , Protocol.Service
   -- other-extensions:    
   build-depends:       base
                      , bytestring 

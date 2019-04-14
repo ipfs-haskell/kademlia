@@ -1,4 +1,4 @@
-module Utils where
+module Util where
 
 import qualified Data.ByteString as BS
 import qualified Network.Datagram as D

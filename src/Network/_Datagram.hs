@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -52,4 +53,32 @@ class (KnownNat (Bound m), MonadIO m) =>
   -- | Receive a datagram. The address of the peer is also given.
   receive :: m (Datagram (Bound m), Address m)
 
+-- | A monad transformer that sends messages of at most n bytes as a
+-- UDP packet.
+newtype UdpT (n :: Nat) m a = UdpT
+  { unUdpT :: ReaderT N.Socket m a
+  } deriving (Functor, Applicative, Monad, MonadIO)
 
+-- TODO: write a function to run an action in UdpT.
+-- | Helper function to get the size of the Udp datagram.
+messageSize :: (KnownNat n, Monad m) => UdpT n m Int
+messageSize = fmap (fromEnum . natVal) getSizeProxy
+  where
+    getSizeProxy :: Monad m => UdpT n m (Proxy n)
+    getSizeProxy = UdpT $ return Proxy
+
+instance (KnownNat n, MonadIO m) => MonadDatagram (UdpT n m) where
+  type Bound (UdpT n m) = n
+  type Address (UdpT n m) = N.SockAddr
+  send addr dgram = do
+    sock <- UdpT ask
+    liftIO $ Socket.sendAllTo sock (unwrap dgram) addr
+  receive = do
+    sock <- UdpT ask
+    msize <- messageSize
+    (msg, addr) <- liftIO $ Socket.recvFrom sock msize
+    return (unsafeDatagram msg, addr)
+
+-- | Running a UdpT computation with an environment
+runUdpT1024 :: UdpT 1024 IO a -> N.Socket -> IO a
+runUdpT1024 c = runReaderT $ unUdpT c
